@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock Paper Scissors - Multiplayer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="welcome-screen">
+            <h1>🗿📄✂️</h1>
+            <h2>Rock Paper Scissors</h2>
+            <p class="subtitle">Challenge your friends to an epic battle!</p>
+            
+            <div class="button-group">
+                <button id="createRoomBtn" class="btn btn-primary">Create Room</button>
+                <button id="joinRoomBtn" class="btn btn-secondary">Join Room</button>
+            </div>
+
+            <!-- Join Room Form (hidden by default) -->
+            <div id="joinRoomForm" class="join-form hidden">
+                <input 
+                    type="text" 
+                    id="roomCodeInput" 
+                    placeholder="Enter Room Code" 
+                    maxlength="6"
+                    class="room-input"
+                >
+                <button id="submitJoinBtn" class="btn btn-primary">Join</button>
+                <button id="cancelJoinBtn" class="btn btn-cancel">Cancel</button>
+            </div>
+
+            <!-- Room Created Display (hidden by default) -->
+            <div id="roomCreated" class="room-info hidden">
+                <h3>Room Created!</h3>
+                <p>Share this code with your friend:</p>
+                <div class="room-code-display">
+                    <span id="displayRoomCode"></span>
+                    <button id="copyCodeBtn" class="btn-copy" title="Copy to clipboard">📋</button>
+                </div>
+                <p class="waiting-message">Waiting for opponent to join...</p>
+            </div>
+
+            <div id="errorMessage" class="error-message hidden"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
