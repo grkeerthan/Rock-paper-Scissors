@@ -69,10 +69,24 @@ io.on('connection', (socket) => {
 
     // Rejoin room when game page loads
     socket.on('rejoinRoom', (roomCode) => {
-        socket.join(roomCode);
-        socket.roomCode = roomCode;
-        console.log(`Socket ${socket.id} rejoined room: ${roomCode}`);
+        const result = gameService.rejoinRoom(roomCode, socket.id);
+        
+        if (result.success) {
+            socket.join(roomCode);
+            socket.roomCode = roomCode;
+            console.log(`Socket ${socket.id} rejoined room: ${roomCode} - ${result.message || ''}`);
+            
+            // If this was a new room creation or player 2 joined, notify game ready
+            if (result.message && (result.message.includes('created new room') || result.message.includes('Joined as Player 2'))) {
+                io.to(roomCode).emit('gameReady', {
+                    message: 'Both players connected! Make your choice.'
+                });
+            }
+        } else {
+            socket.emit('error', { message: result.error || 'Unable to rejoin room' });
+        }
     });
+
 // handle player's choice
     socket.on('makeChoice', ({ roomCode, choice }) => {
         const result = gameService.makeChoice(roomCode, socket.id, choice);

@@ -148,12 +148,78 @@ function disconnection(roomCode, playerId) {
         return { success: false, error: "Player not in room" };
     }
     
-    rooms.delete(roomCode);
+    // Only delete room if both players have disconnected
+    // Mark the disconnected player and check if room should be deleted
+    let shouldDeleteRoom = false;
+    
+    if (room.player1.id === playerId) {
+        room.player1.disconnected = true;
+        shouldDeleteRoom = room.player2 === null || room.player2.disconnected;
+    } else if (room.player2 && room.player2.id === playerId) {
+        room.player2.disconnected = true;
+        shouldDeleteRoom = room.player1.disconnected;
+    }
+    
+    if (shouldDeleteRoom) {
+        rooms.delete(roomCode);
+        return { 
+            success: true, 
+            roomDeleted: true,
+            roomCode: roomCode 
+        };
+    }
+    
     return { 
         success: true, 
-        roomDeleted: true,
+        roomDeleted: false,
         roomCode: roomCode 
     };
+}
+
+function rejoinRoom(roomCode, playerId) {
+    let room = rooms.get(roomCode);
+    
+    if (!room) {
+        // Room doesn't exist, create a new room with the same code
+        const newRoomCode = roomCode; // Use the requested room code
+        rooms.set(newRoomCode, {
+            code: newRoomCode,
+            player1: {
+                id: playerId,
+                choice: null,
+                disconnected: false
+            },
+            player2: null,
+            status: 'waiting for player'
+        });
+        return { success: true, roomCode: newRoomCode, message: "Room not found, created new room" };
+    }
+    
+    // Check if player was part of this room
+    const wasPlayer1 = room.player1.id === playerId;
+    const wasPlayer2 = room.player2 && room.player2.id === playerId;
+    
+    if (wasPlayer1) {
+        // Player 1 rejoined, mark as connected
+        room.player1.disconnected = false;
+        return { success: true, roomCode: roomCode, message: "Rejoined as Player 1" };
+    } else if (wasPlayer2) {
+        // Player 2 rejoined, mark as connected
+        room.player2.disconnected = false;
+        return { success: true, roomCode: roomCode, message: "Rejoined as Player 2" };
+    } else if (!room.player2) {
+        // Room exists and has space, join as player 2
+        room.player2 = {
+            id: playerId,
+            choice: null,
+            disconnected: false
+        };
+        room.status = "game in progress";
+        return { success: true, roomCode: roomCode, message: "Joined as Player 2" };
+    } else {
+        // Room is full and player is not authorized
+        return { success: false, error: "Room full and you're not a participant" };
+    }
 }
 
 module.exports = {
@@ -161,5 +227,6 @@ module.exports = {
     joinRoom,
     makeChoice,
     resetRoom,
-    disconnection
+    disconnection,
+    rejoinRoom
 };

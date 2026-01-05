@@ -148,6 +148,15 @@ socket.on('playerDisconnected', (data) => {
 // Error handling
 socket.on('error', (data) => {
     showError(data.message);
+    
+    // If room not found error, redirect to home after showing message
+    if (data.message && data.message.includes('Room not found')) {
+        setTimeout(() => {
+            sessionStorage.removeItem('roomCode');
+            sessionStorage.removeItem('playerId');
+            window.location.href = '/';
+        }, 3000);
+    }
 });
 
 // Helper function to show error messages
